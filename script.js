@@ -19,7 +19,7 @@ let currentData = {};
 async function loadData(date) {
   // Имитация запроса - замени на fetch к реальному API
   await new Promise(res => setTimeout(res, 250));
-  const times = ["18:00", "19:00", "20:00", "21:00", "22:00"];
+  const times = ["17:00", "19:00", "20:00", "21:00"];
   return times.map(t => ({
     time: t,
     sf_online: Math.floor(Math.random()*5 + 5),
@@ -197,3 +197,4 @@ if(savedDate && dates.includes(savedDate)) {
 setInterval(() => {
   if(currentDate) showTab(currentDate);
 }, 60000);
+

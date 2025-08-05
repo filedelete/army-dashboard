@@ -1,0 +1,120 @@
+* {
+  box-sizing: border-box;
+}
+body {
+  font-family: 'Roboto', sans-serif;
+  margin: 0;
+  padding: 40px 20px;
+  background: linear-gradient(135deg, #1c2833, #3a4a5a);
+  color: #f0f0f3;
+  min-height: 100vh;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+h1 {
+  font-weight: 900;
+  font-size: 3rem;
+  text-align: center;
+  margin-bottom: 40px;
+  letter-spacing: 2px;
+  color: #f5f7fa;
+  text-shadow: 0 3px 8px rgba(255,111,97,0.6);
+}
+.tabs {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 12px;
+  margin-bottom: 40px;
+}
+.tab-button {
+  background: rgba(255, 255, 255, 0.12);
+  backdrop-filter: blur(10px);
+  border-radius: 30px;
+  border: 1px solid rgba(255,111,97,0.4);
+  padding: 12px 28px;
+  font-weight: 700;
+  font-size: 1.1rem;
+  color: #ff6f61;
+  cursor: pointer;
+  transition: 
+    background-color 0.3s ease,
+    border-color 0.3s ease,
+    color 0.3s ease,
+    transform 0.2s ease;
+  box-shadow: 0 2px 8px rgba(255,111,97,0.2);
+}
+.tab-button:hover {
+  background: rgba(255, 111, 97, 0.2);
+  border-color: #ff6f61;
+  color: #fff;
+  transform: translateY(-3px);
+  box-shadow: 0 6px 15px rgba(255,111,97,0.5);
+}
+.tab-button.active {
+  background: #ff6f61;
+  border-color: #ff6f61;
+  color: #fff;
+  box-shadow: 0 0 20px #ff6f61;
+  transform: translateY(-3px);
+}
+.tab-content {
+  max-width: 1000px;
+  margin: 0 auto 60px;
+}
+.chart-container {
+  background: rgba(255, 255, 255, 0.05);
+  border-radius: 20px;
+  padding: 25px 30px;
+  margin-bottom: 35px;
+  box-shadow:
+    0 8px 32px 0 rgba(31, 38, 135, 0.37),
+    inset 0 0 15px rgba(255, 111, 97, 0.3);
+  backdrop-filter: blur(12px);
+  border: 1px solid rgba(255, 111, 97, 0.15);
+  transition: box-shadow 0.3s ease;
+}
+.chart-container:hover {
+  box-shadow:
+    0 12px 40px 0 rgba(255, 111, 97, 0.6),
+    inset 0 0 20px rgba(255, 111, 97, 0.5);
+}
+h2 {
+  font-weight: 700;
+  font-size: 1.4rem;
+  margin-bottom: 20px;
+  color: #ff6f61;
+  text-shadow: 0 1px 4px rgba(0,0,0,0.5);
+}
+canvas {
+  width: 100% !important;
+  height: 320px !important;
+  border-radius: 14px;
+  background: rgba(31, 44, 60, 0.7);
+  box-shadow: inset 0 0 25px rgba(255, 111, 97, 0.4);
+  transition: background-color 0.3s ease;
+}
+canvas:hover {
+  background: rgba(31, 44, 60, 0.85);
+}
+
+/* Адаптивность */
+@media (max-width: 768px) {
+  body {
+    padding: 30px 12px;
+  }
+  .tab-button {
+    flex: 1 1 100%;
+    max-width: 100%;
+    font-size: 1.05rem;
+    padding: 14px 20px;
+    margin-bottom: 10px;
+  }
+  .chart-container {
+    padding: 18px 22px;
+    margin-bottom: 30px;
+  }
+  canvas {
+    height: 200px !important;
+  }
+}

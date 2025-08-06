@@ -1,73 +1,7 @@
-const translations = {
-  uk: {
-    themeToggle: 'Переключити тему',
-    refreshNow: 'Оновити зараз',
-    bankLabel: 'Банк $',
-    ammoLabel: 'Боєприпаси',
-    ammoLossLabel: '⬇ -{count} боєприпасів',
-    fractionNames: {
-      7: "Армия SF",
-      8: "Армия SF (доп.)",
-      10: "ФБР",
-      11: "SFPD",
-      12: "LVPD",
-      13: "LSPD",
-      14: "РКШД",
-    },
-    notifAmmoUp: (f, c) => `${f}: боєприпаси збільшились на +${c}`,
-    notifAmmoDown: (f, c) => `${f}: боєприпаси зменшились на -${c}`,
-    notifBankUp: (f, c) => `${f}: банк збільшився на +${c}`,
-    notifBankDown: (f, c) => `${f}: банк зменшився на -${c}`,
-  },
-  ru: {
-    themeToggle: 'Переключить тему',
-    refreshNow: 'Обновить сейчас',
-    bankLabel: 'Банк $',
-    ammoLabel: 'Боеприпасы',
-    ammoLossLabel: '⬇ -{count} боеприпасов',
-    fractionNames: {
-      7: "Армия SF",
-      8: "Армия SF (доп.)",
-      10: "ФБР",
-      11: "SFPD",
-      12: "LVPD",
-      13: "LSPD",
-      14: "РКШД",
-    },
-    notifAmmoUp: (f, c) => `${f}: боеприпасы увеличились на +${c}`,
-    notifAmmoDown: (f, c) => `${f}: боеприпасы уменьшились на -${c}`,
-    notifBankUp: (f, c) => `${f}: банк увеличился на +${c}`,
-    notifBankDown: (f, c) => `${f}: банк уменьшился на -${c}`,
-  },
-  en: {
-    themeToggle: 'Toggle Theme',
-    refreshNow: 'Refresh Now',
-    bankLabel: 'Bank $',
-    ammoLabel: 'Ammo',
-    ammoLossLabel: '⬇ -{count} ammo',
-    fractionNames: {
-      7: "Army SF",
-      8: "Army SF (extra)",
-      10: "FBI",
-      11: "SFPD",
-      12: "LVPD",
-      13: "LSPD",
-      14: "RKSHD",
-    },
-    notifAmmoUp: (f, c) => `${f}: ammo increased by +${c}`,
-    notifAmmoDown: (f, c) => `${f}: ammo decreased by -${c}`,
-    notifBankUp: (f, c) => `${f}: bank increased by +${c}`,
-    notifBankDown: (f, c) => `${f}: bank decreased by -${c}`,
-  }
-};
-
-let currentLang = localStorage.getItem('lang') || 'uk';
-
 const themeToggle = document.getElementById('theme-toggle');
 const refreshButton = document.getElementById('refresh-now');
 const wrapper = document.getElementById('charts-wrapper');
 const spinner = document.getElementById('loading-spinner');
-const languageSelect = document.getElementById('language-select');
 const toastContainer = document.getElementById('toast-container');
 
 const fractionData = new Map();
@@ -75,18 +9,33 @@ const fractionData = new Map();
 const colorPalette = ['#42a5f5', '#66bb6a', '#ffa726', '#ab47bc', '#ef5350', '#26c6da', '#8d6e63', '#d4e157'];
 const fractionOrder = [];
 
-languageSelect.value = currentLang;
-
 function translate(key) {
-  return translations[currentLang][key];
+const texts = {
+  themeToggle: 'Переключить тему',
+  refreshNow: 'Обновить сейчас',
+  bankLabel: 'Банк $',
+  ammoLabel: 'Боеприпасы',
+  ammoLossLabel: '⬇ -{count} боеприпасов',
+  fractionNames: {
+    7: "Армия SF",
+    8: "Армия SF (доп.)",
+    10: "ФБР",
+    11: "SFPD",
+    12: "LVPD",
+    13: "LSPD",
+    14: "РКШД",
+  },
+  notifAmmoUp: (f, c) => `${f}: боеприпасы увеличились на +${c}`,
+  notifAmmoDown: (f, c) => `${f}: боеприпасы уменьшились на -${c}`,
+  notifBankUp: (f, c) => `${f}: банк увеличился на +${c}`,
+  notifBankDown: (f, c) => `${f}: банк уменьшился на -${c}`,
+};
+  return texts[key];
 }
 
 function getFractionName(id) {
-  const names = translations[currentLang].fractionNames;
-  if (names[id]) return names[id];
-  if (currentLang === 'uk') return `Фракція ${id}`;
-  if (currentLang === 'ru') return `Фракция ${id}`;
-  return `Faction ${id}`;
+  const names = translate('fractionNames');
+  return names[id] || `Фракция ${id}`;
 }
 
 function hexToRgba(hex, alpha) {
@@ -265,7 +214,6 @@ function createChartBlock(id, name, bank, colorIndex) {
   });
 }
 
-// Показ уведомления
 function showToast(text, type = 'success') {
   const toast = document.createElement('div');
   toast.className = `toast toast-${type}`;
@@ -311,11 +259,11 @@ async function updateDashboard() {
 
       if (val > prev) {
         radius = 7;
-        color = '#4caf50'; // зелёный
+        color = '#4caf50';
         pulse = true;
       } else if (val < prev) {
         radius = 7;
-        color = '#ef5350'; // красный
+        color = '#ef5350';
         pulse = true;
         const lostCount = (prev - val).toLocaleString();
         label = translate('ammoLossLabel').replace('{count}', lostCount);
@@ -336,7 +284,6 @@ async function updateDashboard() {
     dataset.pointLabel = pointLabel;
     entry.chart.update();
 
-    // Обновить банк с иконкой стрелки
     if (entry.prevBank !== null) {
       const diff = bank - entry.prevBank;
       const arrow = diff > 0 ? '⬆' : (diff < 0 ? '⬇' : '');
@@ -344,8 +291,8 @@ async function updateDashboard() {
       entry.bankText.innerHTML = `${translate('bankLabel')}: ${bank.toLocaleString()} <span style="color:${colorArrow}">${arrow}</span>`;
 
       if (diff !== 0) {
-        showToast(diff > 0 ? translations[currentLang].notifBankUp(name, Math.abs(diff).toLocaleString())
-                           : translations[currentLang].notifBankDown(name, Math.abs(diff).toLocaleString()),
+        showToast(diff > 0 ? translate('notifBankUp')(name, Math.abs(diff).toLocaleString())
+                           : translate('notifBankDown')(name, Math.abs(diff).toLocaleString()),
                            diff > 0 ? 'success' : 'error');
       }
     } else {
@@ -353,7 +300,6 @@ async function updateDashboard() {
     }
     entry.prevBank = bank;
 
-    // Обновить боєприпаси с иконкой стрелки
     if (entry.prevAmmo !== null) {
       const diffAmmo = ammo - entry.prevAmmo;
       const arrowAmmo = diffAmmo > 0 ? '⬆' : (diffAmmo < 0 ? '⬇' : '');
@@ -361,8 +307,8 @@ async function updateDashboard() {
       entry.ammoText.innerHTML = `${translate('ammoLabel')}: ${ammo.toLocaleString()} <span style="color:${colorArrowAmmo}">${arrowAmmo}</span>`;
 
       if (diffAmmo !== 0) {
-        showToast(diffAmmo > 0 ? translations[currentLang].notifAmmoUp(name, Math.abs(diffAmmo).toLocaleString())
-                              : translations[currentLang].notifAmmoDown(name, Math.abs(diffAmmo).toLocaleString()),
+        showToast(diffAmmo > 0 ? translate('notifAmmoUp')(name, Math.abs(diffAmmo).toLocaleString())
+                              : translate('notifAmmoDown')(name, Math.abs(diffAmmo).toLocaleString()),
                               diffAmmo > 0 ? 'success' : 'error');
       }
     } else {
@@ -375,44 +321,27 @@ async function updateDashboard() {
 function toggleTheme() {
   document.body.classList.toggle('dark-theme');
   localStorage.setItem('theme', document.body.classList.contains('dark-theme') ? 'dark' : 'light');
-  // Перерисовать графики с новой темой
   fractionData.forEach(({ chart }) => {
     chart.options = { ...chart.options, ...getChartOptions() };
     chart.update();
   });
 }
 
+themeToggle.textContent = translate('themeToggle');
+refreshButton.textContent = translate('refreshNow');
+
 themeToggle.addEventListener('click', () => {
   toggleTheme();
-  updateTexts();
 });
 
 refreshButton.addEventListener('click', () => {
   updateDashboard();
 });
 
-languageSelect.addEventListener('change', () => {
-  currentLang = languageSelect.value;
-  localStorage.setItem('lang', currentLang);
-  updateTexts();
-});
-
-function updateTexts() {
-  themeToggle.textContent = translate('themeToggle');
-  refreshButton.textContent = translate('refreshNow');
-  // Обновить имена фракций и подписи у существующих блоков
-  fractionData.forEach(({ bankText, ammoText, chart }, id) => {
-    bankText.textContent = ''; // обновится при обновлении данных
-    ammoText.textContent = '';
-  });
-}
-
-// Инициализация
 (function init() {
   if (localStorage.getItem('theme') === 'dark') {
     document.body.classList.add('dark-theme');
   }
-  updateTexts();
   updateDashboard();
-  setInterval(updateDashboard, 20 * 60 * 1000); // обновление каждые 20 минут
+  setInterval(updateDashboard, 20 * 60 * 1000);
 })();

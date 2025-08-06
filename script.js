@@ -343,5 +343,6 @@ refreshButton.addEventListener('click', () => {
     document.body.classList.add('dark-theme');
   }
   updateDashboard();
-  setInterval(updateDashboard, 20 * 60 * 1000);
+  setInterval(updateDashboard, 5 * 60 * 1000);
 })();
+

@@ -1,23 +1,29 @@
 <!DOCTYPE html>
-<html lang="ru">
+<html lang="uk">
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Army Dashboard</title>
-  <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&display=swap" rel="stylesheet" />
-  <link rel="stylesheet" href="style.css" />
+  <title>Фракції | Армія API</title>
+  <link rel="stylesheet" href="styles.css" />
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 </head>
 <body>
 
-  <h1>Army Dashboard</h1>
-  <button id="theme-toggle" class="tab-button">Переключить тему</button>
+  <div class="controls">
+    <button id="theme-toggle"></button>
+    <button id="refresh-now"></button>
+    <select id="language-select" aria-label="Select language">
+      <option value="uk">Українська</option>
+      <option value="ru">Русский</option>
+      <option value="en">English</option>
+    </select>
+  </div>
 
-  <div class="tabs" id="dateTabs"></div>
+  <div id="loading-spinner"><div class="spinner"></div></div>
+  <div id="charts-wrapper"></div>
 
-  <div id="tabContents" class="tab-content"></div>
+  <div id="toast-container"></div>
 
-  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-  <script src="script.js"></script>
-
+  <script src="app.js"></script>
 </body>
 </html>

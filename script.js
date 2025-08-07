@@ -162,6 +162,7 @@ container.appendChild(table);
 
   fractionData.set(id, {
     chart,
+	name, // <--- Add this line
     labels: [],
     data: [],
     bankText: container.querySelector('.bank-text'),
@@ -281,4 +282,5 @@ themeToggle.onclick = toggleTheme;
   if (localStorage.getItem('theme') === 'dark') document.body.classList.add('dark-theme');
   updateDashboard();
   setInterval(updateDashboard, 5 * 60 * 1000);
+
 })();

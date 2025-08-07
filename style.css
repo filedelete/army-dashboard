@@ -17,10 +17,18 @@ body {
   border-radius: 12px;
   box-shadow: 0 0 12px rgba(0,0,0,0.1);
   flex: 1 1 48%;
+  max-width: 48%;
   display: flex;
   flex-direction: column;
   gap: 8px;
   box-sizing: border-box;
+}
+
+@media (max-width: 900px) {
+  .chart-container {
+    flex: 1 1 100%;
+    max-width: 100%;
+  }
 }
 
 .dark-theme .chart-container {
@@ -29,7 +37,7 @@ body {
 
 canvas {
   width: 100% !important;
-  height: 280px !important;
+  height: 360px !important;
 }
 
 .controls {
@@ -165,4 +173,31 @@ select {
     opacity: 0;
     transform: translateX(100%);
   }
+}
+
+.change-table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-top: 12px;
+  font-size: 14px;
+}
+
+.change-table th, .change-table td {
+  padding: 6px 10px;
+  text-align: center;
+  border-bottom: 1px solid #ddd;
+}
+
+.dark-theme .change-table th,
+.dark-theme .change-table td {
+  border-color: #444;
+}
+
+.change-table thead {
+  background: #e0e0e0;
+}
+
+.dark-theme .change-table thead {
+  background: #333;
+  color: #f0f0f0;
 }

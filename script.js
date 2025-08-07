@@ -1,21 +1,19 @@
+// Элементы UI
 const themeToggle = document.getElementById('theme-toggle');
-const refreshButton = document.getElementById('refresh-now');
 const wrapper = document.getElementById('charts-wrapper');
 const spinner = document.getElementById('loading-spinner');
 const toastContainer = document.getElementById('toast-container');
 
 const fractionData = new Map();
-
-const colorPalette = ['#42a5f5', '#66bb6a', '#ffa726', '#ab47bc', '#ef5350', '#26c6da', '#8d6e63', '#d4e157'];
 const fractionOrder = [];
+const colorPalette = ['#42a5f5', '#e1b557', '#ffa726', '#ab47bc', '#9757e1', '#26c6da', '#8d6e63', '#d4e157'];
 
-function translate(key) {
 const texts = {
   themeToggle: 'Переключить тему',
-  refreshNow: 'Обновить сейчас',
   bankLabel: 'Банк $',
   ammoLabel: 'Боеприпасы',
   ammoLossLabel: '⬇ -{count} боеприпасов',
+  ammoGainLabel: '⬆ +{count} боеприпасов',
   fractionNames: {
     7: "Армия SF",
     8: "Армия SF (доп.)",
@@ -30,65 +28,45 @@ const texts = {
   notifBankUp: (f, c) => `${f}: банк увеличился на +${c}`,
   notifBankDown: (f, c) => `${f}: банк уменьшился на -${c}`,
 };
-  return texts[key];
-}
 
-function getFractionName(id) {
-  const names = translate('fractionNames');
-  return names[id] || `Фракция ${id}`;
-}
+const translate = key => texts[key];
+const getFractionName = id => texts.fractionNames[id] || `Фракция ${id}`;
+const hexToRgba = (hex, alpha) => `rgba(${parseInt(hex.slice(1, 3), 16)}, ${parseInt(hex.slice(3, 5), 16)}, ${parseInt(hex.slice(5), 16)}, ${alpha})`;
 
-function hexToRgba(hex, alpha) {
-  const bigint = parseInt(hex.replace('#', ''), 16);
-  const r = (bigint >> 16) & 255;
-  const g = (bigint >> 8) & 255;
-  const b = bigint & 255;
-  return `rgba(${r}, ${g}, ${b}, ${alpha})`;
-}
-
-function getThemeColors() {
-  const isDark = document.body.classList.contains('dark-theme');
+const getThemeColors = () => {
+  const dark = document.body.classList.contains('dark-theme');
   return {
-    textColor: isDark ? '#E0E0E0' : '#333',
-    gridColor: isDark ? 'rgba(255, 255, 255, 0.15)' : 'rgba(0, 0, 0, 0.1)',
-    tooltipBg: isDark ? '#424242' : '#ffffff',
-    tooltipTitleColor: isDark ? '#90CAF9' : '#1976d2',
-    tooltipBodyColor: isDark ? '#E0E0E0' : '#444'
+    textColor: dark ? '#E0E0E0' : '#333',
+    gridColor: dark ? 'rgba(255,255,255,0.15)' : 'rgba(0,0,0,0.1)',
+    tooltipBg: dark ? '#424242' : '#fff',
+    tooltipTitleColor: dark ? '#90CAF9' : '#1976d2',
+    tooltipBodyColor: dark ? '#E0E0E0' : '#444'
   };
-}
+};
 
-const pulsePlugin = {
+Chart.register({
   id: 'pulsePlugin',
   afterDraw(chart) {
-    const ctx = chart.ctx;
-    const dataset = chart.data.datasets[0];
-    if (!dataset.pointPulse) return;
-
-    const meta = chart.getDatasetMeta(0);
-    meta.data.forEach((point, i) => {
-      if (!dataset.pointPulse[i]) return;
-      const radius = point.radius || 6;
-      const x = point.x;
-      const y = point.y;
-
+    const { ctx, data } = chart;
+    if (!data.datasets[0].pointPulse) return;
+    chart.getDatasetMeta(0).data.forEach((point, i) => {
+      if (!data.datasets[0].pointPulse[i]) return;
       const time = Date.now() / 1000;
       const scale = 1 + 0.3 * Math.sin(time * 6 + i);
       ctx.save();
       ctx.beginPath();
-      ctx.arc(x, y, radius * scale, 0, 2 * Math.PI);
-      ctx.strokeStyle = dataset.pointBackgroundColor[i];
+      ctx.arc(point.x, point.y, (point.radius || 6) * scale, 0, 2 * Math.PI);
+      ctx.strokeStyle = data.datasets[0].pointBackgroundColor[i];
       ctx.lineWidth = 3;
       ctx.globalAlpha = 0.6;
       ctx.stroke();
       ctx.restore();
     });
   }
-};
+});
 
-Chart.register(pulsePlugin);
-
-function getChartOptions() {
-  const theme = getThemeColors();
+const getChartOptions = () => {
+  const t = getThemeColors();
   return {
     responsive: true,
     maintainAspectRatio: false,
@@ -96,56 +74,41 @@ function getChartOptions() {
     plugins: {
       legend: { display: false },
       tooltip: {
-        backgroundColor: theme.tooltipBg,
-        titleColor: theme.tooltipTitleColor,
-        bodyColor: theme.tooltipBodyColor,
+        backgroundColor: t.tooltipBg,
+        titleColor: t.tooltipTitleColor,
+        bodyColor: t.tooltipBodyColor,
         cornerRadius: 6,
         padding: 10,
         displayColors: false,
         callbacks: {
-          label: function(context) {
-            const index = context.dataIndex;
-            const val = context.raw;
-            const label = context.dataset.pointLabel?.[index] || '';
-            return `${translate('ammoLabel')}: ${val.toLocaleString()} ${label}`;
-          }
+          label: ctx => `${texts.ammoLabel}: ${ctx.raw.toLocaleString()} ${ctx.dataset.pointLabel?.[ctx.dataIndex] || ''}`
         }
       },
       pulsePlugin: true
     },
     scales: {
-      x: {
-        ticks: { color: theme.textColor },
-        grid: { color: theme.gridColor }
-      },
-      y: {
-        beginAtZero: true,
-        ticks: { color: theme.textColor },
-        grid: { color: theme.gridColor }
-      }
+      x: { ticks: { color: t.textColor }, grid: { color: t.gridColor } },
+      y: { beginAtZero: true, ticks: { color: t.textColor }, grid: { color: t.gridColor } }
     }
   };
-}
+};
 
 async function loadData() {
   try {
-    const apiUrl = "https://yrn-api.arzmesa.ru/method/arizona.getFractionSklads?server=7";
-    const headers = {
-      Authorization: "Bearer yrn1.eyPk_OafC7hsmFYs64kdFVlIrfMJF7FCTZG2b07mQlNjAU53-zyyYcAHKt9G9PY82pEUqUNmGG2uNVE4iseBpwh8QMcKgTGH453D9jGxNoPDJ_g9n5x5iaUYefifMYK5SyYfTV66ipVSSoXQSRlBLrH8Y3e77Aon9qOSFI8llgKU_MezjRsgTzFRP1KWfF-PLxVZMxv6I_",
-    };
-    const response = await fetch(apiUrl, { method: "GET", headers });
-    const result = await response.json();
-    const now = new Date();
-    const time = `${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}`;
-    return result.response.items.map(item => ({
-      id: item.fraction,
-      name: getFractionName(item.fraction),
+    const res = await fetch("https://yrn-api.arzmesa.ru/method/arizona.getFractionSklads?server=7", {
+      headers: { Authorization: "Bearer yrn1.eyPk_OafC7hsmFYs64kdFVlIrfMJF7FCTZG2b07mQlNjAU53-zyyYcAHKt9G9PY82pEUqUNmGG2uNVE4iseBpwh8QMcKgTGH453D9jGxNoPDJ_g9n5x5iaUYefifMYK5SyYfTV66ipVSSoXQSRlBLrH8Y3e77Aon9qOSFI8llgKU_MezjRsgTzFRP1KWfF-PLxVZMxv6I_" }
+    });
+    const { response: { items } } = await res.json();
+    const time = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+    return items.map(({ fraction, bank, ammo }) => ({
+      id: fraction,
+      name: getFractionName(fraction),
       time,
-      bank: item.bank,
-      ammo: item.ammo,
+      bank,
+      ammo
     }));
-  } catch (e) {
-    console.error(e);
+  } catch (err) {
+    console.error(err);
     return [];
   }
 }
@@ -153,38 +116,33 @@ async function loadData() {
 function createChartBlock(id, name, bank, colorIndex) {
   const container = document.createElement('div');
   container.className = 'chart-container';
-
-  const header = document.createElement('div');
-  header.className = 'fraction-header';
-
-  const title = document.createElement('h2');
-  title.textContent = name;
-
-  const bankText = document.createElement('div');
-  bankText.className = 'bank-text';
-  bankText.textContent = `${translate('bankLabel')}: ${bank.toLocaleString()}`;
-
-  const ammoText = document.createElement('div');
-  ammoText.className = 'ammo-text';
-  ammoText.textContent = '';
-
-  header.appendChild(title);
-  header.appendChild(bankText);
-  header.appendChild(ammoText);
-  container.appendChild(header);
-
-  const canvas = document.createElement('canvas');
-  container.appendChild(canvas);
+  container.innerHTML = `
+    <div class="fraction-header">
+      <h2>${name}</h2>
+      <div class="bank-text">${texts.bankLabel}: ${bank.toLocaleString()}</div>
+      <div class="ammo-text"></div>
+    </div>
+    <canvas></canvas>
+  `;
   wrapper.appendChild(container);
+  const table = document.createElement('table');
+table.className = 'change-table';
+table.innerHTML = `
+  <thead>
+    <tr><th>Время</th><th>Изменение</th><th>Количество патронов</th></tr>
+  </thead>
+  <tbody></tbody>
+`;
+container.appendChild(table);
 
-  const ctx = canvas.getContext('2d');
+  const ctx = container.querySelector('canvas').getContext('2d');
   const color = colorPalette[colorIndex % colorPalette.length];
   const chart = new Chart(ctx, {
     type: 'line',
     data: {
       labels: [],
       datasets: [{
-        label: translate('ammoLabel'),
+        label: texts.ammoLabel,
         data: [],
         borderColor: color,
         backgroundColor: hexToRgba(color, 0.3),
@@ -206,11 +164,12 @@ function createChartBlock(id, name, bank, colorIndex) {
     chart,
     labels: [],
     data: [],
-    bankText,
-    ammoText,
+    bankText: container.querySelector('.bank-text'),
+    ammoText: container.querySelector('.ammo-text'),
+	tableBody: table.querySelector('tbody'),
     color,
     prevBank: null,
-    prevAmmo: null,
+    prevAmmo: null
   });
 }
 
@@ -219,9 +178,17 @@ function showToast(text, type = 'success') {
   toast.className = `toast toast-${type}`;
   toast.textContent = text;
   toastContainer.appendChild(toast);
-  setTimeout(() => {
-    toast.remove();
-  }, 4000);
+  setTimeout(() => toast.remove(), 4000);
+}
+
+function updateEntry(entry, label, data, current, prev, labelType, notifUp, notifDown) {
+  const diff = current - prev;
+  const arrow = diff > 0 ? '⬆' : diff < 0 ? '⬇' : '';
+  const color = diff > 0 ? '#4caf50' : diff < 0 ? '#ef5350' : 'inherit';
+  label.innerHTML = `${labelType}: ${current.toLocaleString()} <span style="color:${color}">${arrow}</span>`;
+  if (diff !== 0) {
+    showToast((diff > 0 ? notifUp : notifDown)(entry.name, Math.abs(diff).toLocaleString()), diff > 0 ? 'success' : 'error');
+  }
 }
 
 async function updateDashboard() {
@@ -236,113 +203,82 @@ async function updateDashboard() {
     }
 
     const entry = fractionData.get(id);
-
     entry.labels.push(time);
     entry.data.push(ammo);
+const prevAmmo = entry.prevAmmo;
+const diff = prevAmmo !== null ? ammo - prevAmmo : 0; // Если нет предыдущего, diff=0
 
-    if (entry.labels.length > 30) {
-      entry.labels.shift();
-      entry.data.shift();
-    }
+const row = document.createElement('tr');
+row.innerHTML = `
+  <td>${time}</td>
+  <td style="color:${diff > 0 ? '#4caf50' : diff < 0 ? '#ef5350' : '#999'}">
+    ${diff > 0 ? '⬆' : diff < 0 ? '⬇' : '-'}
+  </td>
+  <td>${diff !== 0 ? Math.abs(diff).toLocaleString() : ammo.toLocaleString()}</td>
+`;
 
-    const pointRadius = [];
-    const pointBackgroundColor = [];
-    const pointLabel = [];
-    const pointPulse = [];
+entry.tableBody.appendChild(row);
 
+// Обрізаємо до 30 рядків
+if (entry.tableBody.rows.length > 30) {
+  entry.tableBody.removeChild(entry.tableBody.firstChild);
+}
+
+    if (entry.labels.length > 30) entry.labels.shift(), entry.data.shift();
+
+    const pr = [], pbc = [], pl = [], pp = [];
     entry.data.forEach((val, i) => {
       const prev = entry.data[i - 1] ?? val;
-      let radius = 4;
-      let color = entry.color;
-      let pulse = false;
-      let label = '';
-
+      let r = 4, c = entry.color, pulse = false, lbl = '';
       if (val > prev) {
-        radius = 7;
-        color = '#4caf50';
+        r = 7;
+        c = '#4caf50';
         pulse = true;
+        lbl = texts.ammoGainLabel.replace('{count}', (val - prev).toLocaleString());
       } else if (val < prev) {
-        radius = 7;
-        color = '#ef5350';
+        r = 7;
+        c = '#ef5350';
         pulse = true;
-        const lostCount = (prev - val).toLocaleString();
-        label = translate('ammoLossLabel').replace('{count}', lostCount);
+        lbl = texts.ammoLossLabel.replace('{count}', (prev - val).toLocaleString());
       }
-
-      pointRadius.push(radius);
-      pointBackgroundColor.push(color);
-      pointPulse.push(pulse);
-      pointLabel.push(label);
+      pr.push(r); pbc.push(c); pp.push(pulse); pl.push(lbl);
     });
 
-    const dataset = entry.chart.data.datasets[0];
-    entry.chart.data.labels = entry.labels;
-    dataset.data = entry.data;
-    dataset.pointRadius = pointRadius;
-    dataset.pointBackgroundColor = pointBackgroundColor;
-    dataset.pointPulse = pointPulse;
-    dataset.pointLabel = pointLabel;
+    Object.assign(entry.chart.data, { labels: entry.labels, datasets: [{
+      ...entry.chart.data.datasets[0],
+      data: entry.data,
+      pointRadius: pr,
+      pointBackgroundColor: pbc,
+      pointPulse: pp,
+      pointLabel: pl
+    }] });
     entry.chart.update();
 
-    if (entry.prevBank !== null) {
-      const diff = bank - entry.prevBank;
-      const arrow = diff > 0 ? '⬆' : (diff < 0 ? '⬇' : '');
-      const colorArrow = diff > 0 ? '#4caf50' : (diff < 0 ? '#ef5350' : 'inherit');
-      entry.bankText.innerHTML = `${translate('bankLabel')}: ${bank.toLocaleString()} <span style="color:${colorArrow}">${arrow}</span>`;
-
-      if (diff !== 0) {
-        showToast(diff > 0 ? translate('notifBankUp')(name, Math.abs(diff).toLocaleString())
-                           : translate('notifBankDown')(name, Math.abs(diff).toLocaleString()),
-                           diff > 0 ? 'success' : 'error');
-      }
-    } else {
-      entry.bankText.textContent = `${translate('bankLabel')}: ${bank.toLocaleString()}`;
-    }
+    if (entry.prevBank !== null) updateEntry(entry, entry.bankText, entry.data, bank, entry.prevBank, texts.bankLabel, texts.notifBankUp, texts.notifBankDown);
+    else entry.bankText.textContent = `${texts.bankLabel}: ${bank.toLocaleString()}`;
     entry.prevBank = bank;
 
-    if (entry.prevAmmo !== null) {
-      const diffAmmo = ammo - entry.prevAmmo;
-      const arrowAmmo = diffAmmo > 0 ? '⬆' : (diffAmmo < 0 ? '⬇' : '');
-      const colorArrowAmmo = diffAmmo > 0 ? '#4caf50' : (diffAmmo < 0 ? '#ef5350' : 'inherit');
-      entry.ammoText.innerHTML = `${translate('ammoLabel')}: ${ammo.toLocaleString()} <span style="color:${colorArrowAmmo}">${arrowAmmo}</span>`;
-
-      if (diffAmmo !== 0) {
-        showToast(diffAmmo > 0 ? translate('notifAmmoUp')(name, Math.abs(diffAmmo).toLocaleString())
-                              : translate('notifAmmoDown')(name, Math.abs(diffAmmo).toLocaleString()),
-                              diffAmmo > 0 ? 'success' : 'error');
-      }
-    } else {
-      entry.ammoText.textContent = `${translate('ammoLabel')}: ${ammo.toLocaleString()}`;
-    }
+    if (entry.prevAmmo !== null) updateEntry(entry, entry.ammoText, entry.data, ammo, entry.prevAmmo, texts.ammoLabel, texts.notifAmmoUp, texts.notifAmmoDown);
+    else entry.ammoText.textContent = `${texts.ammoLabel}: ${ammo.toLocaleString()}`;
     entry.prevAmmo = ammo;
   });
 }
 
 function toggleTheme() {
-  document.body.classList.toggle('dark-theme');
-  localStorage.setItem('theme', document.body.classList.contains('dark-theme') ? 'dark' : 'light');
+  const isDark = document.body.classList.toggle('dark-theme');
+  localStorage.setItem('theme', isDark ? 'dark' : 'light');
   fractionData.forEach(({ chart }) => {
     chart.options = { ...chart.options, ...getChartOptions() };
     chart.update();
   });
 }
 
-themeToggle.textContent = translate('themeToggle');
-refreshButton.textContent = translate('refreshNow');
+themeToggle.textContent = texts.themeToggle;
 
-themeToggle.addEventListener('click', () => {
-  toggleTheme();
-});
-
-refreshButton.addEventListener('click', () => {
-  updateDashboard();
-});
+themeToggle.onclick = toggleTheme;
 
 (function init() {
-  if (localStorage.getItem('theme') === 'dark') {
-    document.body.classList.add('dark-theme');
-  }
+  if (localStorage.getItem('theme') === 'dark') document.body.classList.add('dark-theme');
   updateDashboard();
   setInterval(updateDashboard, 5 * 60 * 1000);
 })();
-

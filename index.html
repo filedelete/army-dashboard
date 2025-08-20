@@ -1,12 +1,12 @@
 <!DOCTYPE html>
-<html lang="uk">
+<html lang="ru">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Дашборд Складов МО/МЮ</title>
-  <link rel="stylesheet" href="style.css" />
-    <link rel="icon" href="https://i.imgur.com/lRKCfUZ.png" type="image/x-icon" />
-  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>📊 Dashboard складов</title>
+<link rel="stylesheet" href="style.css">
+<link rel="icon" href="https://i.imgur.com/lRKCfUZ.png" type="image/x-icon" />
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   <!-- Google tag (gtag.js) -->
 <script async src="https://www.googletagmanager.com/gtag/js?id=G-0610J8XQBD"></script>
 <script>
@@ -16,17 +16,21 @@
 
   gtag('config', 'G-0610J8XQBD');
 </script>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
 </head>
 <body>
-  <div class="controls">
-    <button id="theme-toggle">Переключить тему</button>
+<header>
+  <h1>📊 Dashboard складов</h1>
+  <div>
+    <button onclick="fetchData()">🔄 Обновить</button>
+    <button id="themeBtn" onclick="toggleTheme()">🌗 Тема</button>
   </div>
+</header>
+<main class="grid" id="cards"></main>
+<div class="modal-overlay" id="modal">
+  <div class="modal-card" id="modal-card"></div>
+</div>
 
-  <div id="loading-spinner"><div class="spinner"></div></div>
-  <div id="charts-wrapper"></div>
-  <div id="toast-container"></div>
-
-  <script src="script.js"></script>
+<script src="script.js"></script>
 </body>
-
 </html>

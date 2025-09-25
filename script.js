@@ -2,33 +2,26 @@ let darkMode = true;
 const history = {};
 window.charts = {};
 
+// переключение темы
 function toggleTheme() {
   darkMode = !darkMode;
-  document.body.classList.toggle('light', !darkMode);
-
-  // плавное переключение
-  document.body.style.transition = "background 0.3s, color 0.3s";
-  document.querySelectorAll(".card, .modal-card").forEach(el => {
-    el.style.transition = "background 0.3s, color 0.3s, border-color 0.3s";
-  });
-
+  document.body.classList.toggle("light", !darkMode);
   updateChartsTheme();
 }
 
 function updateChartsTheme() {
   Object.values(window.charts || {}).forEach(chart => {
-    chart.options.scales.x.ticks.color = darkMode ? '#e5e5e5' : '#111';
-    chart.options.scales.y.ticks.color = darkMode ? '#e5e5e5' : '#111';
-    chart.options.plugins.legend.labels.color = darkMode ? '#e5e5e5' : '#111';
+    chart.options.scales.x.ticks.color = darkMode ? '#e6e6e6' : '#111';
+    chart.options.scales.y.ticks.color = darkMode ? '#e6e6e6' : '#111';
     chart.update();
   });
 }
 
-// -------------------- Загрузка данных --------------------
+// ================= Загрузка данных =================
 async function loadData() {
   try {
     const res = await fetch("https://mute-silence-f23b.antonplaksyvyi.workers.dev/", {
-      headers: { 
+      headers: {
         Authorization: "Bearer yrn1.eyOIjmZkjsa12_fenmGnAws.Ft0qH7h-NQ5Ys-XWLmQP1QQaKBGU_2ZkOOdfzmoOfi0updi6Q0tsN64F0YcCPROko9X6lkFCj7q5XqvY8kN3a1MPsMT0h51sJMiPfmTN7lwHLZrjk8uJDzBlbhdyd4m86K8eWRTcApRc9rGgvB5fT3GZ3HMTUwqLWly0RxUw5_rpeoVYVBj92I-jaGtKVj-J9iHAZftV"
       }
     });
@@ -52,39 +45,65 @@ async function loadData() {
   }
 }
 
-// -------------------- Создание графиков --------------------
-function createChart(ctx, records, previous) {
+// ================= Chart.js с прогнозом =================
+// ================= Chart.js без прогноза =================
+function createChart(ctx, records) {
+  // реальные значения
+  const labels = records.map(r => r.time);
+  const data = records.map(r => r.ammo);
+
   return new Chart(ctx, {
     type: 'line',
     data: {
-      labels: records.map(r => r.time),
-      datasets: [{
-        data: records.map(r => r.ammo),
-        borderColor: "#f59e0b",
-        backgroundColor: 'rgba(245,158,11,0.2)',
-        tension: 0.3,
-        pointRadius: 4,
-        pointBackgroundColor: "#f59e0b"
-      }]
+      labels,
+      datasets: [
+        {
+          label: 'Патроны',
+          data,
+          borderColor: "#f59e0b",
+          backgroundColor: 'rgba(245,158,11,0.2)',
+          tension: 0.3,
+          pointRadius: 3,
+          pointBackgroundColor: "#f59e0b"
+        }
+      ]
     },
     options: {
       plugins: { legend: { display: false } },
       scales: {
-        x: { ticks: { color: darkMode ? '#e5e5e5' : '#111' } },
-        y: { ticks: { color: darkMode ? '#e5e5e5' : '#111' } }
+        x: { ticks: { color: darkMode ? '#e6e6e6' : '#111' } },
+        y: { ticks: { color: darkMode ? '#e6e6e6' : '#111' } }
+      },
+      animation: {
+        duration: 600,
+        easing: 'easeOutQuart'
       }
     }
   });
 }
 
-// -------------------- Функция для выбора цвета --------------------
+
+// ================= Утилиты =================
 function getPercentColor(percent) {
   if (percent > 70) return "green";
   if (percent > 30) return "yellow";
   return "red";
 }
 
-// -------------------- Модалка --------------------
+// плавная анимация чисел
+function animateNumber(el, to) {
+  const from = parseInt(el.textContent.replace(/\D/g, '')) || 0;
+  const duration = 600;
+  const start = performance.now();
+  requestAnimationFrame(function step(now) {
+    const progress = Math.min((now - start) / duration, 1);
+    const val = Math.floor(from + (to - from) * progress);
+    el.textContent = val.toLocaleString();
+    if (progress < 1) requestAnimationFrame(step);
+  });
+}
+
+// ================= Модалка =================
 const modal = document.getElementById("modal");
 const modalCard = document.getElementById("modal-card");
 modal.addEventListener("click", (e) => {
@@ -93,8 +112,11 @@ modal.addEventListener("click", (e) => {
   }
 });
 
-// -------------------- Основная функция --------------------
+// ================= Основная функция =================
 async function fetchData() {
+  // показать загрузку
+  document.getElementById("loader").classList.add("active");
+
   const items = await loadData();
   const container = document.getElementById("cards");
 
@@ -115,41 +137,49 @@ async function fetchData() {
     card.className = "card";
     card.innerHTML = `
       <h2>${item.name}</h2>
-      <p class="meta">Обновлено: ${item.time}</p>
-      <div class="stats">
-        <div class="stat">💰 <b>Банк:</b> ${latest.bank.toLocaleString()}</div>
-        <div class="stat">🔫 <b>Патроны:</b> ${latest.ammo.toLocaleString()}
+      <div class="content">
+        <p class="meta">Обновлено: ${item.time}</p>
+        <div class="stat">💰 <b>Банк:</b> <span class="value-bank">0</span></div>
+        <div class="stat">🔫 <b>Патроны:</b> <span class="value-ammo">0</span>
           ${previous && latest.ammo > previous.ammo ? `<span class="green">▲</span>` :
         previous && latest.ammo < previous.ammo ? `<span class="red">▼</span>` :
           `<span class="yellow">▬</span>`}
         </div>
+        <div class="progress-bar">
+          <div class="progress-fill" style="background-color:${ammoPercent > 70 ? '#22c55e' : ammoPercent > 30 ? '#facc15' : '#ef4444'}"></div>
+        </div>
+        <p class="meta ${percentColor}">Заполнено: <span class="value-percent">0</span>%</p>
+        <canvas id="chart-${item.id}"></canvas>
       </div>
-      <div class="progress-bar">
-        <div class="progress-fill" style="width: ${ammoPercent}%; background-color: ${ammoPercent>70?'#22c55e':ammoPercent>30?'#facc15':'#ef4444'}"></div>
-      </div>
-      <p class="meta ${percentColor}">Заполнено: ${ammoPercent}%</p>
-      <canvas id="chart-${item.id}"></canvas>
     `;
+
+    // анимации чисел
+    animateNumber(card.querySelector(".value-bank"), latest.bank);
+    animateNumber(card.querySelector(".value-ammo"), latest.ammo);
+    animateNumber(card.querySelector(".value-percent"), ammoPercent);
+
+    // анимация прогресс-бара
+    setTimeout(() => {
+      card.querySelector(".progress-fill").style.width = `${ammoPercent}%`;
+    }, 50);
 
     const ctx2d = card.querySelector(`#chart-${item.id}`).getContext("2d");
     if (window.charts[item.id]) window.charts[item.id].destroy();
-    window.charts[item.id] = createChart(ctx2d, records, previous);
+    window.charts[item.id] = createChart(ctx2d, records);
 
     // Модалка
     card.addEventListener("click", () => {
       modalCard.innerHTML = `
         <h2>${item.name}</h2>
         <p class="meta">Обновлено: ${item.time}</p>
-        <div class="stats">
-          <div class="stat">💰 <b>Банк:</b> ${latest.bank.toLocaleString()}</div>
-          <div class="stat">🔫 <b>Патроны:</b> ${latest.ammo.toLocaleString()}
-            ${previous && latest.ammo > previous.ammo ? `<span class="green">▲</span>` :
-          previous && latest.ammo < previous.ammo ? `<span class="red">▼</span>` :
-            `<span class="yellow">▬</span>`}
-          </div>
+        <div class="stat">💰 <b>Банк:</b> ${latest.bank.toLocaleString()}</div>
+        <div class="stat">🔫 <b>Патроны:</b> ${latest.ammo.toLocaleString()}
+          ${previous && latest.ammo > previous.ammo ? `<span class="green">▲</span>` :
+        previous && latest.ammo < previous.ammo ? `<span class="red">▼</span>` :
+          `<span class="yellow">▬</span>`}
         </div>
         <div class="progress-bar">
-          <div class="progress-fill" style="width: ${ammoPercent}%; background-color: ${ammoPercent>70?'#22c55e':ammoPercent>30?'#facc15':'#ef4444'}"></div>
+          <div class="progress-fill" style="width:${ammoPercent}%; background-color:${ammoPercent > 70 ? '#22c55e' : ammoPercent > 30 ? '#facc15' : '#ef4444'}"></div>
         </div>
         <p class="meta ${percentColor}">Заполнено: ${ammoPercent}%</p>
         <canvas id="modal-chart"></canvas>
@@ -157,7 +187,7 @@ async function fetchData() {
       `;
       modal.classList.add("active");
       const ctxModal = document.getElementById("modal-chart").getContext("2d");
-      new Chart(ctxModal, createChart(ctxModal, records, previous).config);
+      new Chart(ctxModal, createChart(ctxModal, records).config);
     });
 
     return card;
@@ -165,7 +195,12 @@ async function fetchData() {
 
   container.innerHTML = "";
   newCards.forEach(card => container.appendChild(card));
+
+  // скрыть загрузку
+  document.getElementById("loader").classList.remove("active");
 }
 
-fetchData();
-setInterval(fetchData, 600000);
+document.addEventListener("DOMContentLoaded", () => {
+  fetchData();                       // первая загрузка сразу после рендера DOM
+  setInterval(fetchData, 600000);    // автообновление каждые 10 минут
+});

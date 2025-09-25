@@ -1,164 +1,178 @@
 :root {
-  --bg-color: #1f1f1f;
-  --panel-bg: #2b2b2b;
-  --panel-border: #444;
-  --text-color: #e5e5e5;
-  --text-meta: #9ca3af;
+  --bg: #141414;
+  --panel: #1f1f1f;
+  --panel-border: #2c2c2c;
+  --header: #202226;
+  --text: #e5e5e5;
+  --muted: #9ea6ad;
   --accent: #f59e0b;
   --green: #22c55e;
-  --red: #ef4444;
   --yellow: #facc15;
+  --red: #ef4444;
+}
+
+body.light {
+  --bg: #ffffff;
+  --panel: #f7f8fa;
+  --panel-border: #e0e0e0;
+  --header: #eceff4;
+  --text: #111;
+  --muted: #666;
+  --accent: #f59e0b;
+  --green: #16a34a;
+  --yellow: #f59e0b;
+  --red: #dc2626;
 }
 
 body {
   margin: 0;
   font-family: "Inter", sans-serif;
-  background: var(--bg-color);
-  color: var(--text-color);
-  display: flex;
-  flex-direction: column;
-  min-height: 100vh;
-  line-height: 1.4;
+  background: var(--bg);
+  color: var(--text);
+  transition: background 0.3s, color 0.3s;
 }
 
+/* header */
 header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding: 0.75rem 1.5rem;
-  background: #111;
-  border-bottom: 1px solid #333;
+  display:flex; justify-content:space-between; align-items:center;
+  padding:0.6rem 1rem;
+  background: var(--header);
+  border-bottom:1px solid var(--panel-border);
 }
-header h1 {
-  font-size: 1.25rem;
-  font-weight: 600;
-  margin: 0;
-}
+header h1 { font-size:1rem; font-weight:600; margin:0; }
 button {
-  background: #2b2b2b;
-  border: 1px solid #444;
-  border-radius: 4px;
-  color: var(--text-color);
-  font-size: 0.85rem;
-  padding: 0.4rem 0.8rem;
-  cursor: pointer;
-  font-weight: 500;
+  background:transparent; border:1px solid var(--panel-border);
+  color:var(--text); padding:0.3rem 0.7rem; border-radius:2px;
+  cursor:pointer; font-size:0.8rem;
 }
-button:hover {
-  background: #3a3a3a;
-}
+button:hover { opacity:0.85; }
 
+/* grid */
 .grid {
-  display: grid;
+  display:grid;
   grid-template-columns: repeat(auto-fit, minmax(380px, 1fr));
-  gap: 1rem;
-  padding: 1rem;
+  gap:1rem;
+  padding:1rem;
 }
 
+/* card/panel */
 .card {
-  background: var(--panel-bg);
+  background: var(--panel);
   border: 1px solid var(--panel-border);
-  border-radius: 3px;
-  padding: 0.75rem;
-  display: flex;
-  flex-direction: column;
-  gap: 0.75rem;
+  border-radius: 2px;
+  display:flex;
+  flex-direction:column;
 }
 .card h2 {
-  margin: 0;
-  font-size: 1rem;
+  background: var(--header);
+  margin:0;
+  padding:0.5rem 0.75rem;
+  font-size:0.9rem;
+  font-weight:600;
+  border-bottom:1px solid var(--panel-border);
+}
+.card .content {
+  padding:0.75rem;
+  display:flex; flex-direction:column; gap:0.5rem;
+}
+.meta { color:var(--muted); font-size:0.75rem; }
+.stat { font-size:0.9rem; }
+.stat b { font-weight:600; }
+
+.green { color:var(--green); }
+.yellow { color:var(--yellow); }
+.red { color:var(--red); }
+/* Обводка для слов "Банк" и "Патроны" */
+.stat-label {
+  display: inline-block;
+  padding: 0.2rem 0.4rem;
+  border: 1px solid var(--panel-border);
+  border-radius: 3px;
+  background: var(--panel-bg);
   font-weight: 600;
-  border-bottom: 1px solid #444;
-  padding-bottom: 0.5rem;
-}
-.meta {
-  color: var(--text-meta);
-  font-size: 0.8rem;
-  margin-bottom: 0.5rem;
-}
-.stats {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 0.5rem;
-}
-.stat {
-  background: #1a1a1a;
-  border: 1px solid #333;
-  border-radius: 3px;
-  padding: 0.3rem 0.6rem;
-  font-size: 0.85rem;
-}
-.green { color: var(--green); }
-.red { color: var(--red); }
-.yellow { color: var(--yellow); }
-
-.progress-bar {
-  width: 100%;
-  height: 8px;
-  background: #333;
-  border-radius: 3px;
-  overflow: hidden;
-}
-.progress-fill {
-  height: 100%;
+  margin-right: 0.3rem;
 }
 
-canvas {
-  width: 100% !important;
-  height: 200px !important;
-}
-
-/* Модальное окно */
-.modal-overlay {
-  position: fixed;
-  top:0; left:0; width:100vw; height:100vh;
-  background: rgba(0,0,0,0.7);
-  display:flex; justify-content:center; align-items:center;
-  opacity:0; pointer-events:none; transition: opacity 0.3s ease;
-}
-.modal-overlay.active {opacity:1; pointer-events:auto;}
-.modal-card {
+/* Светлая тема для обводки */
+.light .stat-label {
   background: var(--panel-bg);
   border: 1px solid var(--panel-border);
-  border-radius: 4px;
-  padding: 1rem;
-  box-shadow: 0 0 20px rgba(0,0,0,0.7);
-  max-width: 90%;
-  max-height: 90%;
-  overflow: auto;
-  position: relative;
+  color: var(--text-color);
+}
+
+
+/* progress bar */
+.progress-bar {
+  width:100%;
+  height:6px;
+  background:#333;
+  overflow:hidden;
+}
+body.light .progress-bar { background:#e0e0e0; }
+.progress-fill {
+  height:100%;
+  width:0;
+  transition: width 0.6s ease;
+}
+
+/* charts */
+canvas { width:100% !important; height:180px !important; }
+
+/* modal */
+.modal-overlay {
+  position:fixed; inset:0; background:rgba(0,0,0,0.7);
+  display:flex; justify-content:center; align-items:center;
+  opacity:0; pointer-events:none; transition:opacity 0.3s;
+}
+.modal-overlay.active { opacity:1; pointer-events:auto; }
+.modal-card {
+  background: var(--panel);
+  border:1px solid var(--panel-border);
+  border-radius:2px;
+  padding:1rem;
+  max-width:90%; max-height:90%;
+  overflow:auto; position:relative;
 }
 .modal-close {
-  position: absolute;
-  top: 0.5rem;
-  right: 0.5rem;
-  font-size: 1.2rem;
-  font-weight: bold;
-  cursor: pointer;
-  color: var(--accent);
+  position:absolute; top:0.5rem; right:0.5rem;
+  cursor:pointer; font-weight:bold; color:var(--accent);
+}
+/* Loader overlay */
+.loader-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.7);
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  z-index: 9999;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.3s ease;
 }
 
-/* Светлая тема */
-/* Светлая тема */
-.light {
-  --bg-color: #f4f4f4;
-  --panel-bg: #ffffff;
-  --panel-border: #ddd;
-  --text-color: #111;
-  --text-meta: #555;
-  --accent: #f59e0b;
-  --green: #16a34a;
-  --red: #dc2626;
-  --yellow: #f59e0b;
+.loader-overlay.active {
+  opacity: 1;
+  pointer-events: all;
 }
 
-.light .stat {
-  background: #f9f9f9;      /* светлый фон */
-  border: 1px solid #ddd;   /* светлая рамка */
-  color: #111;              /* тёмный текст внутри */
+.spinner {
+  width: 50px;
+  height: 50px;
+  border: 4px solid rgba(255,255,255,0.2);
+  border-top: 4px solid var(--accent);
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+  margin-bottom: 10px;
 }
 
-.light .meta {
-  color: #555;
+@keyframes spin {
+  to { transform: rotate(360deg); }
 }
 
+.loader-overlay p {
+  color: #fff;
+  font-size: 0.9rem;
+  margin: 0;
+}
